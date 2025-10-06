@@ -1,4 +1,4 @@
-#include "mass_spring.h"
+#include "mass_spring.hpp"
 
 int main()
 {

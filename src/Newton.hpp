@@ -1,7 +1,7 @@
 #ifndef Newton_h
 #define Newton_h
 
-#include "nonlinfunc.h"
+#include "nonlinfunc.hpp"
 
 namespace ASC_ode
 {

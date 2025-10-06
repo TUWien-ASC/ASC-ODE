@@ -5,7 +5,7 @@
 #include <exception>
 #include <calcinverse.hpp>
 
-#include "Newton.h"
+#include "Newton.hpp"
 
 
 namespace ASC_ode

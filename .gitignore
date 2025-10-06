@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+build
+mass_spring/.ipynb_checkpoints

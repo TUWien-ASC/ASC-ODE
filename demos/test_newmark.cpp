@@ -1,5 +1,5 @@
-#include <nonlinfunc.h>
-#include <ode.h>
+#include <nonlinfunc.hpp>
+#include <ode.hpp>
 
 using namespace ASC_ode;
 

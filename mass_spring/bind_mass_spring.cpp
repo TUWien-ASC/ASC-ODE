@@ -3,7 +3,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 
-#include "mass_spring.h"
+#include "mass_spring.hpp"
 
 namespace py = pybind11;
 
