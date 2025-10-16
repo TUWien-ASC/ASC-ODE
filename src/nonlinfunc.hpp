@@ -7,7 +7,7 @@
 
 namespace ASC_ode
 {
-  using namespace ngbla;
+  using namespace nanoblas;
 
   class NonlinearFunction
   {
@@ -35,7 +35,7 @@ namespace ASC_ode
     void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
       df = 0.0;
-      df.Diag() = 1.0;
+      df.diag() = 1.0;
     }
   };
 
@@ -47,9 +47,9 @@ namespace ASC_ode
   public:
     ConstantFunction (VectorView<double> _val) : val(_val) { }
     void Set(VectorView<double> _val) { val = _val; }
-    VectorView<double> Get() const { return val.View(); }
-    size_t DimX() const override { return val.Size(); }
-    size_t DimF() const override { return val.Size(); }
+    VectorView<double> Get() const { return val; }
+    size_t DimX() const override { return val.size(); }
+    size_t DimF() const override { return val.size(); }
     void Evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       f = val;
@@ -64,11 +64,11 @@ namespace ASC_ode
   
   class SumFunction : public NonlinearFunction
   {
-    shared_ptr<NonlinearFunction> fa, fb;
+    std::shared_ptr<NonlinearFunction> fa, fb;
     double faca, facb;
   public:
-    SumFunction (shared_ptr<NonlinearFunction> _fa,
-                 shared_ptr<NonlinearFunction> _fb,
+    SumFunction (std::shared_ptr<NonlinearFunction> _fa,
+                 std::shared_ptr<NonlinearFunction> _fb,
                  double _faca, double _facb)
       : fa(_fa), fb(_fb), faca(_faca), facb(_facb) { } 
     
@@ -86,30 +86,30 @@ namespace ASC_ode
     {
       fa->EvaluateDeriv(x, df);
       df *= faca;
-      Matrix<> tmp(DimF(), DimX());
+      Matrix<double> tmp(DimF(), DimX());
       fb->EvaluateDeriv(x, tmp);
       df += facb*tmp;
     }
   };
 
 
-  inline auto operator- (shared_ptr<NonlinearFunction> fa, shared_ptr<NonlinearFunction> fb)
+  inline auto operator- (std::shared_ptr<NonlinearFunction> fa, std::shared_ptr<NonlinearFunction> fb)
   {
-    return make_shared<SumFunction>(fa, fb, 1, -1);
+    return std::make_shared<SumFunction>(fa, fb, 1, -1);
   }
 
-  inline auto operator+ (shared_ptr<NonlinearFunction> fa, shared_ptr<NonlinearFunction> fb)
+  inline auto operator+ (std::shared_ptr<NonlinearFunction> fa, std::shared_ptr<NonlinearFunction> fb)
   {
-    return make_shared<SumFunction>(fa, fb, 1, 1);
+    return std::make_shared<SumFunction>(fa, fb, 1, 1);
   }
 
   
   class ScaleFunction : public NonlinearFunction
   {
-    shared_ptr<NonlinearFunction> fa;
+    std::shared_ptr<NonlinearFunction> fa;
     double fac;
   public:
-    ScaleFunction (shared_ptr<NonlinearFunction> _fa,
+    ScaleFunction (std::shared_ptr<NonlinearFunction> _fa,
                    double _fac)
       : fa(_fa), fac(_fac) { } 
     
@@ -128,9 +128,9 @@ namespace ASC_ode
     }
   };
 
-  inline auto operator* (double a, shared_ptr<NonlinearFunction> f)
+  inline auto operator* (double a, std::shared_ptr<NonlinearFunction> f)
   {
-    return make_shared<ScaleFunction>(f, a);
+    return std::make_shared<ScaleFunction>(f, a);
   }
 
 
@@ -139,10 +139,10 @@ namespace ASC_ode
   // fa(fb)
   class ComposeFunction : public NonlinearFunction
   {
-    shared_ptr<NonlinearFunction> fa, fb;
+    std::shared_ptr<NonlinearFunction> fa, fb;
   public:
-    ComposeFunction (shared_ptr<NonlinearFunction> _fa,
-                     shared_ptr<NonlinearFunction> _fb)
+    ComposeFunction (std::shared_ptr<NonlinearFunction> _fa,
+                     std::shared_ptr<NonlinearFunction> _fb)
       : fa(_fa), fb(_fb) { } 
     
     size_t DimX() const override { return fb->DimX(); }
@@ -158,8 +158,8 @@ namespace ASC_ode
       Vector<> tmp(fb->DimF());
       fb->Evaluate (x, tmp);
       
-      Matrix<> jaca(fa->DimF(), fa->DimX());
-      Matrix<> jacb(fb->DimF(), fb->DimX());
+      Matrix<double> jaca(fa->DimF(), fa->DimX());
+      Matrix<double> jacb(fb->DimF(), fb->DimX());
       
       fb->EvaluateDeriv(x, jacb);
       fa->EvaluateDeriv(tmp, jaca);
@@ -169,18 +169,18 @@ namespace ASC_ode
   };
   
   
-  inline auto Compose (shared_ptr<NonlinearFunction> fa, shared_ptr<NonlinearFunction> fb)
+  inline auto Compose (std::shared_ptr<NonlinearFunction> fa, std::shared_ptr<NonlinearFunction> fb)
   {
     return make_shared<ComposeFunction> (fa, fb);
   }
   
   class EmbedFunction : public NonlinearFunction
   {
-    shared_ptr<NonlinearFunction> fa;
+    std::shared_ptr<NonlinearFunction> fa;
     size_t firstx, dimx, firstf, dimf;
     size_t nextx, nextf;
   public:
-    EmbedFunction (shared_ptr<NonlinearFunction> _fa,
+    EmbedFunction (std::shared_ptr<NonlinearFunction> _fa,
                    size_t _firstx, size_t _dimx,
                    size_t _firstf, size_t _dimf)
       : fa(_fa),
@@ -193,13 +193,13 @@ namespace ASC_ode
     void Evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       f = 0.0;
-      fa->Evaluate(x.Range(firstx, nextx), f.Range(firstf, nextf));
+      fa->Evaluate(x.range(firstx, nextx), f.range(firstf, nextf));
     }
     void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
       df = 0;
-      fa->EvaluateDeriv(x.Range(firstx, nextx),
-                        df.Rows(firstf, nextf).Cols(firstx, nextx));      
+      fa->EvaluateDeriv(x.range(firstx, nextx),
+                        df.rows(firstf, nextf).cols(firstx, nextx));      
     }
   };
 
@@ -217,12 +217,12 @@ namespace ASC_ode
     void Evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       f = 0.0;
-      f.Range(first, next) = x.Range(first, next);
+      f.range(first, next) = x.range(first, next);
     }
     void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
       df = 0.0;
-      df.Diag().Range(first, next) = 1;
+      df.diag().range(first, next) = 1;
     }
   };
 

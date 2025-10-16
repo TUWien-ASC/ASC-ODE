@@ -3,7 +3,7 @@
 
 #include <functional>
 #include <exception>
-#include <calcinverse.hpp>
+// #include <calcinverse.hpp>
 
 #include "Newton.hpp"
 
@@ -13,12 +13,12 @@ namespace ASC_ode
   
   // implicit Euler method for dy/dt = rhs(y)
   void SolveODE_IE(double tend, int steps,
-                   VectorView<double> y, shared_ptr<NonlinearFunction> rhs,
+                   VectorView<double> y, std::shared_ptr<NonlinearFunction> rhs,
                    std::function<void(double,VectorView<double>)> callback = nullptr)
   {
     double dt = tend/steps;
-    auto yold = make_shared<ConstantFunction>(y);
-    auto ynew = make_shared<IdentityFunction>(y.Size());
+    auto yold = std::make_shared<ConstantFunction>(y);
+    auto ynew = std::make_shared<IdentityFunction>(y.size());
     auto equ = ynew-yold - dt * rhs;
 
     double t = 0;
@@ -42,23 +42,23 @@ namespace ASC_ode
   // Newmark method for  mass*d^2x/dt^2 = rhs
   void SolveODE_Newmark(double tend, int steps,
                         VectorView<double> x, VectorView<double> dx,
-                        shared_ptr<NonlinearFunction> rhs,   
-                        shared_ptr<NonlinearFunction> mass,  
+                        std::shared_ptr<NonlinearFunction> rhs,   
+                        std::shared_ptr<NonlinearFunction> mass,  
                         std::function<void(double,VectorView<double>)> callback = nullptr)
   {
     double dt = tend/steps;
     double gamma = 0.5;
     double beta = 0.25;
 
-    Vector<> a(x.Size());
-    Vector<> v(x.Size());
+    Vector<> a(x.size());
+    Vector<> v(x.size());
 
     auto xold = make_shared<ConstantFunction>(x);
     auto vold = make_shared<ConstantFunction>(dx);
     auto aold = make_shared<ConstantFunction>(x);
     rhs->Evaluate (xold->Get(), aold->Get());
     
-    auto anew = make_shared<IdentityFunction>(a.Size());
+    auto anew = std::make_shared<IdentityFunction>(a.size());
     auto vnew = vold + dt*((1-gamma)*aold+gamma*anew);
     auto xnew = xold + dt*vold + dt*dt/2 * ((1-2*beta)*aold+2*beta*anew);    
 
@@ -86,8 +86,8 @@ namespace ASC_ode
   // Generalized alpha method for M d^2x/dt^2 = rhs
   void SolveODE_Alpha (double tend, int steps, double rhoinf,
                        VectorView<double> x, VectorView<double> dx, VectorView<double> ddx,
-                       shared_ptr<NonlinearFunction> rhs,   
-                       shared_ptr<NonlinearFunction> mass,  
+                       std::shared_ptr<NonlinearFunction> rhs,   
+                       std::shared_ptr<NonlinearFunction> mass,  
                        std::function<void(double,VectorView<double>)> callback = nullptr)
   {
     double dt = tend/steps;
@@ -96,15 +96,15 @@ namespace ASC_ode
     double gamma = 0.5-alpham+alphaf;
     double beta = 0.25 * (1-alpham+alphaf)*(1-alpham+alphaf);
 
-    Vector<> a(x.Size());
-    Vector<> v(x.Size());
+    Vector<double> a(x.size());
+    Vector<double> v(x.size());
 
     auto xold = make_shared<ConstantFunction>(x);
     auto vold = make_shared<ConstantFunction>(dx);
     auto aold = make_shared<ConstantFunction>(ddx);
     // rhs->Evaluate (xold->Get(), aold->Get()); // solve with M ???
     
-    auto anew = make_shared<IdentityFunction>(a.Size());
+    auto anew = std::make_shared<IdentityFunction>(a.size());
     auto vnew = vold + dt*((1-gamma)*aold+gamma*anew);
     auto xnew = xold + dt*vold + dt*dt/2 * ((1-2*beta)*aold+2*beta*anew);    
 
