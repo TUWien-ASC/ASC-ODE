@@ -56,7 +56,7 @@ namespace ASC_ode
     auto xold = make_shared<ConstantFunction>(x);
     auto vold = make_shared<ConstantFunction>(dx);
     auto aold = make_shared<ConstantFunction>(x);
-    rhs->Evaluate (xold->Get(), aold->Get());
+    rhs->evaluate (xold->Get(), aold->Get());
     
     auto anew = std::make_shared<IdentityFunction>(a.size());
     auto vnew = vold + dt*((1-gamma)*aold+gamma*anew);
@@ -68,8 +68,8 @@ namespace ASC_ode
     for (int i = 0; i < steps; i++)            
       {
         NewtonSolver (equ, a);
-        xnew -> Evaluate (a, x);
-        vnew -> Evaluate (a, v);
+        xnew -> evaluate (a, x);
+        vnew -> evaluate (a, v);
 
         xold->Set(x);
         vold->Set(v);
@@ -117,8 +117,8 @@ namespace ASC_ode
     for (int i = 0; i < steps; i++)
       {
         NewtonSolver (equ, a);
-        xnew -> Evaluate (a, x);
-        vnew -> Evaluate (a, v);
+        xnew -> evaluate (a, x);
+        vnew -> evaluate (a, v);
 
         xold->Set(x);
         vold->Set(v);

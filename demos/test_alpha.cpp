@@ -9,17 +9,17 @@ using namespace ASC_ode;
 // dLagrange
 class dLagrange : public NonlinearFunction
 {
-  size_t DimX() const override { return 3; }
-  size_t DimF() const override { return 3; }
+  size_t dimX() const override { return 3; }
+  size_t dimF() const override { return 3; }
   
-  void Evaluate (VectorView<double> x, VectorView<double> f) const override
+  void evaluate (VectorView<double> x, VectorView<double> f) const override
   {
     f(0) = 2*x(0)*x(2);
     f(1) = 2*x(1)*x(2) - 1;
     f(2) = x(0)*x(0)+x(1)*x(1)-1;
     
   }
-  void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+  void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
   {
     df(0,0) = 2*x(2);
     df(0,1) = 0;

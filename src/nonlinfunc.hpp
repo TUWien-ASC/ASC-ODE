@@ -13,10 +13,10 @@ namespace ASC_ode
   {
   public:
     virtual ~NonlinearFunction() = default;
-    virtual size_t DimX() const = 0;
-    virtual size_t DimF() const = 0;
-    virtual void Evaluate (VectorView<double> x, VectorView<double> f) const = 0;
-    virtual void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const = 0;
+    virtual size_t dimX() const = 0;
+    virtual size_t dimF() const = 0;
+    virtual void evaluate (VectorView<double> x, VectorView<double> f) const = 0;
+    virtual void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const = 0;
   };
 
 
@@ -25,14 +25,14 @@ namespace ASC_ode
     size_t n;
   public:
     IdentityFunction (size_t _n) : n(_n) { } 
-    size_t DimX() const override { return n; }
-    size_t DimF() const override { return n; }
-    void Evaluate (VectorView<double> x, VectorView<double> f) const override
+    size_t dimX() const override { return n; }
+    size_t dimF() const override { return n; }
+    void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       f = x;
     }
-    
-    void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+
+    void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
       df = 0.0;
       df.diag() = 1.0;
@@ -48,13 +48,13 @@ namespace ASC_ode
     ConstantFunction (VectorView<double> _val) : val(_val) { }
     void Set(VectorView<double> _val) { val = _val; }
     VectorView<double> Get() const { return val; }
-    size_t DimX() const override { return val.size(); }
-    size_t DimF() const override { return val.size(); }
-    void Evaluate (VectorView<double> x, VectorView<double> f) const override
+    size_t dimX() const override { return val.size(); }
+    size_t dimF() const override { return val.size(); }
+    void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       f = val;
     }
-    void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+    void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
       df = 0.0;
     }
@@ -70,24 +70,24 @@ namespace ASC_ode
     SumFunction (std::shared_ptr<NonlinearFunction> _fa,
                  std::shared_ptr<NonlinearFunction> _fb,
                  double _faca, double _facb)
-      : fa(_fa), fb(_fb), faca(_faca), facb(_facb) { } 
-    
-    size_t DimX() const override { return fa->DimX(); }
-    size_t DimF() const override { return fa->DimF(); }
-    void Evaluate (VectorView<double> x, VectorView<double> f) const override
+      : fa(_fa), fb(_fb), faca(_faca), facb(_facb) { }
+
+    size_t dimX() const override { return fa->dimX(); }
+    size_t dimF() const override { return fa->dimF(); }
+    void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
-      fa->Evaluate(x, f);
+      fa->evaluate(x, f);
       f *= faca;
-      Vector<> tmp(DimF());
-      fb->Evaluate(x, tmp);
+      Vector<> tmp(dimF());
+      fb->evaluate(x, tmp);
       f += facb*tmp;
     }
-    void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+    void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
-      fa->EvaluateDeriv(x, df);
+      fa->evaluateDeriv(x, df);
       df *= faca;
-      Matrix<double> tmp(DimF(), DimX());
-      fb->EvaluateDeriv(x, tmp);
+      Matrix<double> tmp(dimF(), dimX());
+      fb->evaluateDeriv(x, tmp);
       df += facb*tmp;
     }
   };
@@ -111,19 +111,19 @@ namespace ASC_ode
   public:
     ScaleFunction (std::shared_ptr<NonlinearFunction> _fa,
                    double _fac)
-      : fa(_fa), fac(_fac) { } 
-    
-    size_t DimX() const override { return fa->DimX(); }
-    size_t DimF() const override { return fa->DimF(); }
-    void Evaluate (VectorView<double> x, VectorView<double> f) const override
+      : fa(_fa), fac(_fac) { }
+
+    size_t dimX() const override { return fa->dimX(); }
+    size_t dimF() const override { return fa->dimF(); }
+    void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
-      fa->Evaluate(x, f);
+      fa->evaluate(x, f);
       f *= fac;
 
     }
-    void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+    void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
-      fa->EvaluateDeriv(x, df);
+      fa->evaluateDeriv(x, df);
       df *= fac;
     }
   };
@@ -143,26 +143,26 @@ namespace ASC_ode
   public:
     ComposeFunction (std::shared_ptr<NonlinearFunction> _fa,
                      std::shared_ptr<NonlinearFunction> _fb)
-      : fa(_fa), fb(_fb) { } 
-    
-    size_t DimX() const override { return fb->DimX(); }
-    size_t DimF() const override { return fa->DimF(); }
-    void Evaluate (VectorView<double> x, VectorView<double> f) const override
+      : fa(_fa), fb(_fb) { }
+
+    size_t dimX() const override { return fb->dimX(); }
+    size_t dimF() const override { return fa->dimF(); }
+    void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
-      Vector<> tmp(fb->DimF());
-      fb->Evaluate (x, tmp);
-      fa->Evaluate (tmp, f);
+      Vector<> tmp(fb->dimF());
+      fb->evaluate (x, tmp);
+      fa->evaluate (tmp, f);
     }
-    void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+    void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
-      Vector<> tmp(fb->DimF());
-      fb->Evaluate (x, tmp);
-      
-      Matrix<double> jaca(fa->DimF(), fa->DimX());
-      Matrix<double> jacb(fb->DimF(), fb->DimX());
-      
-      fb->EvaluateDeriv(x, jacb);
-      fa->EvaluateDeriv(tmp, jaca);
+      Vector<> tmp(fb->dimF());
+      fb->evaluate (x, tmp);
+
+      Matrix<double> jaca(fa->dimF(), fa->dimX());
+      Matrix<double> jacb(fb->dimF(), fb->dimX());
+
+      fb->evaluateDeriv(x, jacb);
+      fa->evaluateDeriv(tmp, jaca);
 
       df = jaca*jacb;
     }
@@ -185,21 +185,21 @@ namespace ASC_ode
                    size_t _firstf, size_t _dimf)
       : fa(_fa),
         firstx(_firstx), dimx(_dimx), firstf(_firstf), dimf(_dimf),
-        nextx(_firstx+_fa->DimX()), nextf(_firstf+_fa->DimF())
+        nextx(_firstx+_fa->dimX()), nextf(_firstf+_fa->dimF())
     { }
-    
-    size_t DimX() const override { return dimx; }
-    size_t DimF() const override { return dimf; }
-    void Evaluate (VectorView<double> x, VectorView<double> f) const override
+
+    size_t dimX() const override { return dimx; }
+    size_t dimF() const override { return dimf; }
+    void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       f = 0.0;
-      fa->Evaluate(x.range(firstx, nextx), f.range(firstf, nextf));
+      fa->evaluate(x.range(firstx, nextx), f.range(firstf, nextf));
     }
-    void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+    void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
       df = 0;
-      fa->EvaluateDeriv(x.range(firstx, nextx),
-                        df.rows(firstf, nextf).cols(firstx, nextx));      
+      fa->evaluateDeriv(x.range(firstx, nextx),
+                        df.rows(firstf, nextf).cols(firstx, nextx));
     }
   };
 
@@ -211,15 +211,15 @@ namespace ASC_ode
     Projector (size_t _size, 
                size_t _first, size_t _next)
       : size(_size), first(_first), next(_next) { }
-    
-    size_t DimX() const override { return size; }
-    size_t DimF() const override { return size; }
-    void Evaluate (VectorView<double> x, VectorView<double> f) const override
+
+    size_t dimX() const override { return size; }
+    size_t dimF() const override { return size; }
+    void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       f = 0.0;
       f.range(first, next) = x.range(first, next);
     }
-    void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+    void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
       df = 0.0;
       df.diag().range(first, next) = 1;
