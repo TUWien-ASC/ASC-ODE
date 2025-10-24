@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <nonlinfunc.hpp>
 #include <ode.hpp>
 
@@ -31,6 +33,6 @@ int main()
   Vector<> y = { 1, 0 };  // initializer list
   auto rhs = std::make_shared<MassSpring>();
   
-  SolveODE_IE(tend, steps, y, rhs,
+  solveODE_IE(tend, steps, y, rhs,
               [](double t, VectorView<double> y) { std::cout << t << "  " << y(0) << " " << y(1) << std::endl; });
 }

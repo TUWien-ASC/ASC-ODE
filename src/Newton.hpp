@@ -26,7 +26,7 @@ namespace ASC_ode
         // x -= fprime*res;
 
         LapackLU LU(fprime);
-        LU.Solve(res);
+        LU.solve(res);
         x -= res;
  
         if (callback)

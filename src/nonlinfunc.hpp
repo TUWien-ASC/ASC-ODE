@@ -46,8 +46,8 @@ namespace ASC_ode
     Vector<> val;
   public:
     ConstantFunction (VectorView<double> _val) : val(_val) { }
-    void Set(VectorView<double> _val) { val = _val; }
-    VectorView<double> Get() const { return val; }
+    void set(VectorView<double> _val) { val = _val; }
+    VectorView<double> get() const { return val; }
     size_t dimX() const override { return val.size(); }
     size_t dimF() const override { return val.size(); }
     void evaluate (VectorView<double> x, VectorView<double> f) const override

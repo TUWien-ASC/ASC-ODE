@@ -92,7 +92,7 @@ PYBIND11_MODULE(mass_spring, m) {
         Vector<> dx(3*mss.masses().size());
         Vector<> ddx(3*mss.masses().size());
         mss.getState (x, dx, ddx);
-        return x;
+        return std::vector<double>(x);
       })
       ;
     

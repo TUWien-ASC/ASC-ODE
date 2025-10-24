@@ -27,7 +27,7 @@ int main()
   Vector<> dx(1);  dx(0) = 0;
   auto rhs = make_shared<RHS>();
   auto mass = make_shared<IdentityFunction>(1);
-  SolveODE_Newmark(tend, steps, x, dx, rhs, mass,
+  solveODE_Newmark(tend, steps, x, dx, rhs, mass,
                    [](double t, VectorView<double> x) { cout << "t = " << t << ", x = " << x(0) << endl; }
                    );
 }

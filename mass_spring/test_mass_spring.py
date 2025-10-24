@@ -1,13 +1,8 @@
 import sys
-# sys.path.append('/Users/joachim/texjs/lva/ws2324/ScientificComputing/ASC-ODE/build/mass_spring')
-
+# sys.path.append('/Users/joachim/texjs/lva/IntroSC/ASC-ODE/build')
 sys.path.append('../build/mass_spring')
-sys.path.append('../build/nanoblas')
 
-from nanoblas_impl import *
 from mass_spring import *
-import ngsolve.bla
-
 
 mss = MassSpringSystem3d()
 mss.gravity = (0,0,-9.81)

@@ -26,7 +26,7 @@ int main()
 
   mss.setState (x, dx, ddx);
   
-  SolveODE_Newmark(tend, steps, x, dx,  mss_func, mass,
+  solveODE_Newmark(tend, steps, x, dx,  mss_func, mass,
                    [](double t, VectorView<double> x) { cout << "t = " << t
                                                              << ", x = " << Vec<4>(x) << endl; });
 }

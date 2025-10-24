@@ -1,9 +1,8 @@
-#ifndef ODE_h
-#define ODE_h
+#ifndef ODE_hpp
+#define ODE_hpp
 
 #include <functional>
 #include <exception>
-// #include <calcinverse.hpp>
 
 #include "Newton.hpp"
 
@@ -12,7 +11,7 @@ namespace ASC_ode
 {
   
   // implicit Euler method for dy/dt = rhs(y)
-  void SolveODE_IE(double tend, int steps,
+  void solveODE_IE(double tend, int steps,
                    VectorView<double> y, std::shared_ptr<NonlinearFunction> rhs,
                    std::function<void(double,VectorView<double>)> callback = nullptr)
   {
@@ -25,7 +24,7 @@ namespace ASC_ode
     for (int i = 0; i < steps; i++)
       {
         NewtonSolver (equ, y);
-        yold->Set(y);
+        yold->set(y);
         t += dt;
         if (callback) callback(t, y);
       }
@@ -40,7 +39,7 @@ namespace ASC_ode
   // https://miaodi.github.io/finite%20element%20method/newmark-generalized/
   
   // Newmark method for  mass*d^2x/dt^2 = rhs
-  void SolveODE_Newmark(double tend, int steps,
+  void solveODE_Newmark(double tend, int steps,
                         VectorView<double> x, VectorView<double> dx,
                         std::shared_ptr<NonlinearFunction> rhs,   
                         std::shared_ptr<NonlinearFunction> mass,  
@@ -56,7 +55,7 @@ namespace ASC_ode
     auto xold = make_shared<ConstantFunction>(x);
     auto vold = make_shared<ConstantFunction>(dx);
     auto aold = make_shared<ConstantFunction>(x);
-    rhs->evaluate (xold->Get(), aold->Get());
+    rhs->evaluate (xold->get(), aold->get());
     
     auto anew = std::make_shared<IdentityFunction>(a.size());
     auto vnew = vold + dt*((1-gamma)*aold+gamma*anew);
@@ -71,9 +70,9 @@ namespace ASC_ode
         xnew -> evaluate (a, x);
         vnew -> evaluate (a, v);
 
-        xold->Set(x);
-        vold->Set(v);
-        aold->Set(a);
+        xold->set(x);
+        vold->set(v);
+        aold->set(a);
         t += dt;
         if (callback) callback(t, x);
       }
@@ -120,9 +119,9 @@ namespace ASC_ode
         xnew -> evaluate (a, x);
         vnew -> evaluate (a, v);
 
-        xold->Set(x);
-        vold->Set(v);
-        aold->Set(a);
+        xold->set(x);
+        vold->set(v);
+        aold->set(a);
         t += dt;
         if (callback) callback(t, x);
       }
