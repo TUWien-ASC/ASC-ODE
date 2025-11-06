@@ -4,7 +4,6 @@
 #include <vector.hpp>
 #include <matrix.hpp>
 
-
 namespace ASC_ode
 {
   using namespace nanoblas;
@@ -22,11 +21,11 @@ namespace ASC_ode
 
   class IdentityFunction : public NonlinearFunction
   {
-    size_t n;
+    size_t m_n;
   public:
-    IdentityFunction (size_t _n) : n(_n) { } 
-    size_t dimX() const override { return n; }
-    size_t dimF() const override { return n; }
+    IdentityFunction (size_t n) : m_n(n) { } 
+    size_t dimX() const override { return m_n; }
+    size_t dimF() const override { return m_n; }
     void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       f = x;
@@ -43,16 +42,16 @@ namespace ASC_ode
 
   class ConstantFunction : public NonlinearFunction
   {
-    Vector<> val;
+    Vector<> m_val;
   public:
-    ConstantFunction (VectorView<double> _val) : val(_val) { }
-    void set(VectorView<double> _val) { val = _val; }
-    VectorView<double> get() const { return val; }
-    size_t dimX() const override { return val.size(); }
-    size_t dimF() const override { return val.size(); }
+    ConstantFunction (VectorView<double> val) : m_val(val) { }
+    void set(VectorView<double> val) { m_val = val; }
+    VectorView<double> get() const { return m_val; }
+    size_t dimX() const override { return m_val.size(); }
+    size_t dimF() const override { return m_val.size(); }
     void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
-      f = val;
+      f = m_val;
     }
     void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
@@ -64,31 +63,31 @@ namespace ASC_ode
   
   class SumFunction : public NonlinearFunction
   {
-    std::shared_ptr<NonlinearFunction> fa, fb;
-    double faca, facb;
+    std::shared_ptr<NonlinearFunction> m_fa, m_fb;
+    double m_faca, m_facb;
   public:
-    SumFunction (std::shared_ptr<NonlinearFunction> _fa,
-                 std::shared_ptr<NonlinearFunction> _fb,
-                 double _faca, double _facb)
-      : fa(_fa), fb(_fb), faca(_faca), facb(_facb) { }
+    SumFunction (std::shared_ptr<NonlinearFunction> fa,
+                 std::shared_ptr<NonlinearFunction> fb,
+                 double faca, double facb)
+      : m_fa(fa), m_fb(fb), m_faca(faca), m_facb(facb) { }
 
-    size_t dimX() const override { return fa->dimX(); }
-    size_t dimF() const override { return fa->dimF(); }
+    size_t dimX() const override { return m_fa->dimX(); }
+    size_t dimF() const override { return m_fa->dimF(); }
     void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
-      fa->evaluate(x, f);
-      f *= faca;
+      m_fa->evaluate(x, f);
+      f *= m_faca;
       Vector<> tmp(dimF());
-      fb->evaluate(x, tmp);
-      f += facb*tmp;
+      m_fb->evaluate(x, tmp);
+      f += m_facb*tmp;
     }
     void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
-      fa->evaluateDeriv(x, df);
-      df *= faca;
+      m_fa->evaluateDeriv(x, df);
+      df *= m_faca;
       Matrix<double> tmp(dimF(), dimX());
-      fb->evaluateDeriv(x, tmp);
-      df += facb*tmp;
+      m_fb->evaluateDeriv(x, tmp);
+      df += m_facb*tmp;
     }
   };
 
@@ -106,25 +105,25 @@ namespace ASC_ode
   
   class ScaleFunction : public NonlinearFunction
   {
-    std::shared_ptr<NonlinearFunction> fa;
-    double fac;
+    std::shared_ptr<NonlinearFunction> m_fa;
+    double m_fac;
   public:
-    ScaleFunction (std::shared_ptr<NonlinearFunction> _fa,
-                   double _fac)
-      : fa(_fa), fac(_fac) { }
+    ScaleFunction (std::shared_ptr<NonlinearFunction> fa,
+                   double fac)
+      : m_fa(fa), m_fac(fac) { }
 
-    size_t dimX() const override { return fa->dimX(); }
-    size_t dimF() const override { return fa->dimF(); }
+    size_t dimX() const override { return m_fa->dimX(); }
+    size_t dimF() const override { return m_fa->dimF(); }
     void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
-      fa->evaluate(x, f);
-      f *= fac;
+      m_fa->evaluate(x, f);
+      f *= m_fac;
 
     }
     void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
-      fa->evaluateDeriv(x, df);
-      df *= fac;
+      m_fa->evaluateDeriv(x, df);
+      df *= m_fac;
     }
   };
 
@@ -139,30 +138,30 @@ namespace ASC_ode
   // fa(fb)
   class ComposeFunction : public NonlinearFunction
   {
-    std::shared_ptr<NonlinearFunction> fa, fb;
+    std::shared_ptr<NonlinearFunction> m_fa, m_fb;
   public:
-    ComposeFunction (std::shared_ptr<NonlinearFunction> _fa,
-                     std::shared_ptr<NonlinearFunction> _fb)
-      : fa(_fa), fb(_fb) { }
+    ComposeFunction (std::shared_ptr<NonlinearFunction> fa,
+                     std::shared_ptr<NonlinearFunction> fb)
+      : m_fa(fa), m_fb(fb) { }
 
-    size_t dimX() const override { return fb->dimX(); }
-    size_t dimF() const override { return fa->dimF(); }
+    size_t dimX() const override { return m_fb->dimX(); }
+    size_t dimF() const override { return m_fa->dimF(); }
     void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
-      Vector<> tmp(fb->dimF());
-      fb->evaluate (x, tmp);
-      fa->evaluate (tmp, f);
+      Vector<> tmp(m_fb->dimF());
+      m_fb->evaluate (x, tmp);
+      m_fa->evaluate (tmp, f);
     }
     void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
-      Vector<> tmp(fb->dimF());
-      fb->evaluate (x, tmp);
+      Vector<> tmp(m_fb->dimF());
+      m_fb->evaluate (x, tmp);
 
-      Matrix<double> jaca(fa->dimF(), fa->dimX());
-      Matrix<double> jacb(fb->dimF(), fb->dimX());
+      Matrix<double> jaca(m_fa->dimF(), m_fa->dimX());
+      Matrix<double> jacb(m_fb->dimF(), m_fb->dimX());
 
-      fb->evaluateDeriv(x, jacb);
-      fa->evaluateDeriv(tmp, jaca);
+      m_fb->evaluateDeriv(x, jacb);
+      m_fa->evaluateDeriv(tmp, jaca);
 
       df = jaca*jacb;
     }
@@ -176,53 +175,53 @@ namespace ASC_ode
   
   class EmbedFunction : public NonlinearFunction
   {
-    std::shared_ptr<NonlinearFunction> fa;
-    size_t firstx, dimx, firstf, dimf;
-    size_t nextx, nextf;
+    std::shared_ptr<NonlinearFunction> m_fa;
+    size_t m_firstx, m_dimx, m_firstf, m_dimf;
+    size_t m_nextx, m_nextf;
   public:
-    EmbedFunction (std::shared_ptr<NonlinearFunction> _fa,
-                   size_t _firstx, size_t _dimx,
-                   size_t _firstf, size_t _dimf)
-      : fa(_fa),
-        firstx(_firstx), dimx(_dimx), firstf(_firstf), dimf(_dimf),
-        nextx(_firstx+_fa->dimX()), nextf(_firstf+_fa->dimF())
+    EmbedFunction (std::shared_ptr<NonlinearFunction> fa,
+                   size_t firstx, size_t dimx,
+                   size_t firstf, size_t dimf)
+      : m_fa(fa),
+        m_firstx(firstx), m_dimx(dimx), m_firstf(firstf), m_dimf(dimf),
+        m_nextx(m_firstx+m_fa->dimX()), m_nextf(m_firstf+m_fa->dimF())
     { }
 
-    size_t dimX() const override { return dimx; }
-    size_t dimF() const override { return dimf; }
+    size_t dimX() const override { return m_dimx; }
+    size_t dimF() const override { return m_dimf; }
     void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       f = 0.0;
-      fa->evaluate(x.range(firstx, nextx), f.range(firstf, nextf));
+      m_fa->evaluate(x.range(m_firstx, m_nextx), f.range(m_firstf, m_nextf));
     }
     void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
       df = 0;
-      fa->evaluateDeriv(x.range(firstx, nextx),
-                        df.rows(firstf, nextf).cols(firstx, nextx));
+      m_fa->evaluateDeriv(x.range(m_firstx, m_nextx),
+                        df.rows(m_firstf, m_nextf).cols(m_firstx, m_nextx));
     }
   };
 
   
   class Projector : public NonlinearFunction
   {
-    size_t size, first, next;
+    size_t m_size, m_first, m_next;
   public:
-    Projector (size_t _size, 
-               size_t _first, size_t _next)
-      : size(_size), first(_first), next(_next) { }
+    Projector (size_t size, 
+               size_t first, size_t next)
+      : m_size(size), m_first(first), m_next(next) { }
 
-    size_t dimX() const override { return size; }
-    size_t dimF() const override { return size; }
+    size_t dimX() const override { return m_size; }
+    size_t dimF() const override { return m_size; }
     void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       f = 0.0;
-      f.range(first, next) = x.range(first, next);
+      f.range(m_first, m_next) = x.range(m_first, m_next);
     }
     void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
       df = 0.0;
-      df.diag().range(first, next) = 1;
+      df.diag().range(m_first, m_next) = 1;
     }
   };
 

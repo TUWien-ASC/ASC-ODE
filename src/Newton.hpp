@@ -1,13 +1,11 @@
 #ifndef Newton_h
 #define Newton_h
 
-#include <lapack_interface.hpp>
 #include "nonlinfunc.hpp"
+#include <lapack_interface.hpp>
 
 namespace ASC_ode
-{
-  using namespace std;
-  
+{  
   void NewtonSolver (std::shared_ptr<NonlinearFunction> func, VectorView<double> x,
                      double tol = 1e-10, int maxsteps = 10,
                      std::function<void(int,double,VectorView<double>)> callback = nullptr)

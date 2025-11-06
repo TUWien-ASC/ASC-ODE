@@ -25,9 +25,9 @@ int main()
   int steps = 100;
   Vector<> x(1);   x(0) = 1.;
   Vector<> dx(1);  dx(0) = 0;
-  auto rhs = make_shared<RHS>();
-  auto mass = make_shared<IdentityFunction>(1);
+  auto rhs = std::make_shared<RHS>();
+  auto mass = std::make_shared<IdentityFunction>(1);
   solveODE_Newmark(tend, steps, x, dx, rhs, mass,
-                   [](double t, VectorView<double> x) { cout << "t = " << t << ", x = " << x(0) << endl; }
+                   [](double t, VectorView<double> x) { std::cout << "t = " << t << ", x = " << x(0) << std::endl; }
                    );
 }

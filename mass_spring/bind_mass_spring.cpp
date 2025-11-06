@@ -70,7 +70,7 @@ PYBIND11_MODULE(mass_spring, m) {
     py::class_<MassSpringSystem<3>> (m, "MassSpringSystem3d")
       .def(py::init<>())
       .def("__str__", [](MassSpringSystem<3> & mss) {
-        stringstream sstr;
+        std::stringstream sstr;
         sstr << mss;
         return sstr.str();
       })
@@ -103,8 +103,8 @@ PYBIND11_MODULE(mass_spring, m) {
       Vector<> ddx(3*mss.masses().size());
       mss.getState (x, dx, ddx);
       
-      auto mss_func = make_shared<MSS_Function<3>> (mss);
-      auto mass = make_shared<IdentityFunction> (x.size());      
+      auto mss_func = std::make_shared<MSS_Function<3>> (mss);
+      auto mass = std::make_shared<IdentityFunction> (x.size());      
       
       SolveODE_Alpha(tend, steps, 0.8, x, dx, ddx, mss_func, mass);
 
