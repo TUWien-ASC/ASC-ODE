@@ -2,6 +2,7 @@
 
 #include <nonlinfunc.hpp>
 #include <ode.hpp>
+#include <implicitRK.hpp>
 
 using namespace ASC_ode;
 
@@ -32,18 +33,18 @@ int main()
   int steps = 100;
   Vector<> y = { 1, 0 };  // initializer list
   auto rhs = std::make_shared<MassSpring>();
-  
+  /*
   solveODE_IE(tend, steps, y, rhs,
               [](double t, VectorView<double> y) { std::cout << t << "  " << y(0) << " " << y(1) << std::endl; });
+*/
 
 
 
-/*
   auto [a,b] = ComputeABfromC (Gauss3c);
   SolveODE_RK(tend, steps, a, b, Gauss3c, y, rhs, 
-              [](double t, VectorView<double> y) { cout << t << "  " << y(0) << " " << y(1) << endl; });
+              [](double t, VectorView<double> y) { std::cout << t << "  " << y(0) << " " << y(1) << std::endl; });
 
-
+/*
   cout << "Gauss3c = " << Gauss3c << endl;
   cout << "weights = " << b << endl;
   GaussLegendre (Gauss3c, b);

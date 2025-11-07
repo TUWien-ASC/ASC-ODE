@@ -1,8 +1,14 @@
 #ifndef IMPLICITRK_HPP
 #define IMPLICITRK_HPP
 
+#include <vector.hpp>
+#include <matrix.hpp>
+#include <inverse.hpp>
+
 namespace ASC_ode {
-Matrix<> Gauss2a { { 0.25, 0.25 - sqrt(3)/6 }, { 0.25 + sqrt(3)/6, 0.25 } };
+  using namespace nanoblas;
+
+Matrix<double> Gauss2a { { 0.25, 0.25 - sqrt(3)/6 }, { 0.25 + sqrt(3)/6, 0.25 } };
 Vector<> Gauss2b { 0.5, 0.5 };
 Vector<> Gauss2c { 0.5 - sqrt(3)/6, 0.5 + sqrt(3)/6 };
 
@@ -21,7 +27,7 @@ void GaussLegendre(VectorView<> x, VectorView<> w)
     double x2 = 1;
     const double EPS=1.0e-14;  // EPS is the relative precision.
     double z1,z,xm,xl,pp,p3,p2,p1;
-    int n=x.Size();
+    int n=x.size();
     int m=(n+1)/2;  // The roots are symmetric in the interval, so
     xm=0.5*(x2+x1); // we only have to find half of them.
     xl=0.5*(x2-x1);
@@ -60,7 +66,7 @@ void GaussJacobi (VectorView<> x, VectorView<> w, const double alf, const double
   int i,its,j;
   double alfbet,an,bn,r1,r2,r3;
   double a,b,c,p1,p2,p3,pp,temp,z,z1;
-  int n=x.Size();
+  int n=x.size();
   for (i=0;i<n;i++) { // Loop over the desired roots.
     if (i == 0) {  // Initial guess for the largest root.
       an=alf;
@@ -125,20 +131,22 @@ void GaussJacobi (VectorView<> x, VectorView<> w, const double alf, const double
 
 auto ComputeABfromC (const Vector<> & c)
 {
-  int s = c.Size();
+  int s = c.size();
   Matrix M(s, s);
   Vector tmp(s);
   
   for (int i = 0; i < s; i++)
     for (int j = 0; j < s; j++)
       M(i,j) = std::pow(c(j), i);
-  CalcInverse(M);
+
+  calcInverse(M);
+  // M = LapackLU(M).inverse();
   
   for (int i = 0; i < s; i++)
     tmp(i) = 1.0 / (i+1);
 
   Vector b = M * tmp;
-  cout << "b = " << b << endl;
+  std::cout << "b = " << b << std::endl;
 
   Matrix a(s,s);
 
@@ -146,30 +154,30 @@ auto ComputeABfromC (const Vector<> & c)
     {
       for (int i = 0; i < s; i++)
         tmp(i) = std::pow(c(j),i+1) / (i+1);
-      a.Row(j) = M * tmp;
+      a.row(j) = M * tmp;
     }
   /*
   cout << "b = " << b << endl;
   cout << "a = " << a << endl;
   */
-  return tuple { a, b };
+  return std::tuple { a, b };
 }
   
 
 void GaussRadau (VectorView<> x, VectorView<> w)
 {
-  GaussJacobi (x.Range(0, x.Size()-1),
-               w.Range(0, w.Size()-1), 1, 0);
-  for (int i = 0; i < x.Size()-1; i++)
+  GaussJacobi (x.range(0, x.size()-1),
+               w.range(0, w.size()-1), 1, 0);
+  for (int i = 0; i < x.size()-1; i++)
     {
       x(i) = 0.5*(x(i)+1);
       w(i) *= 0.5;
     }
-  x(x.Size()-1) = 1.0;
+  x(x.size()-1) = 1.0;
   double sum = 0;
-  for (int i = 0; i < x.Size()-1; i++)
+  for (int i = 0; i < x.size()-1; i++)
     sum += w(i);
-  w(x.Size()-1) = 1-sum;
+  w(x.size()-1) = 1-sum;
 }
 }
 
