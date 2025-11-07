@@ -2,6 +2,7 @@
 #define Newton_h
 
 #include "nonlinfunc.hpp"
+#include <inverse.hpp>
 #include <lapack_interface.hpp>
 
 namespace ASC_ode
@@ -20,12 +21,13 @@ namespace ASC_ode
         if (err < tol) return;
 
         func->evaluateDeriv(x, fprime);
-        // CalcInverse(fprime);
-        // x -= fprime*res;
 
-        LapackLU LU(fprime);
-        LU.solve(res);
-        x -= res;
+        calcInverse(fprime);
+        x -= fprime*res;
+
+        // LapackLU LU(fprime);
+        // LU.solve(res);
+        // x -= res;
  
         if (callback)
           callback(i, err, x);
