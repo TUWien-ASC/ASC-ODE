@@ -1,5 +1,5 @@
-#include <nonlinfunc.h>
-#include <ode.h>
+#include <nonlinfunc.hpp>
+#include <ode.hpp>
 
 using namespace ASC_ode;
 
@@ -9,17 +9,17 @@ using namespace ASC_ode;
 // dLagrange
 class dLagrange : public NonlinearFunction
 {
-  size_t DimX() const override { return 3; }
-  size_t DimF() const override { return 3; }
+  size_t dimX() const override { return 3; }
+  size_t dimF() const override { return 3; }
   
-  void Evaluate (VectorView<double> x, VectorView<double> f) const override
+  void evaluate (VectorView<double> x, VectorView<double> f) const override
   {
     f(0) = 2*x(0)*x(2);
     f(1) = 2*x(1)*x(2) - 1;
     f(2) = x(0)*x(0)+x(1)*x(1)-1;
     
   }
-  void EvaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+  void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
   {
     df(0,0) = 2*x(2);
     df(0,1) = 0;
@@ -43,11 +43,11 @@ int main()
   Vector<double> x { 1, 0, 0, };
   Vector<double> dx { 0, 0, 0 };
   Vector<double> ddx { 0, 0, 0 };
-  auto rhs = make_shared<dLagrange>();
-  auto mass = make_shared<Projector>(3, 0, 2);
+  auto rhs = std::make_shared<dLagrange>();
+  auto mass = std::make_shared<Projector>(3, 0, 2);
   
   SolveODE_Alpha (tend, steps, 0.8, x, dx, ddx, rhs, mass, 
-                   // [](double t, VectorView<double> x) { cout << "t = " << t << ", x = " << x(0) << " " << x(1) << " " << x(2) << endl; }
-                   [](double t, VectorView<double> x) { cout << t << " " << x(0) << " " << x(1) << " " << x(2) << endl; }                   
+                   // [](double t, VectorView<double> x) { std::cout << "t = " << t << ", x = " << x(0) << " " << x(1) << " " << x(2) << std::endl; }
+                   [](double t, VectorView<double> x) { std::cout << t << " " << x(0) << " " << x(1) << " " << x(2) << std::endl; }                   
                    );
 }
