@@ -1,5 +1,5 @@
-#ifndef ODE_hpp
-#define ODE_hpp
+#ifndef TIMERSTEPPER_HPP
+#define TIMERSTEPPER_HPP
 
 #include <functional>
 #include <exception>
@@ -56,28 +56,9 @@ namespace ASC_ode
   };
 
 
-/* 
-  // implicit Euler method for dy/dt = rhs(y)
-  void solveODE_IE(double tend, int steps,
-                   VectorView<double> y, std::shared_ptr<NonlinearFunction> rhs,
-                   std::function<void(double,VectorView<double>)> callback = nullptr)
-  {
-    double dt = tend/steps;
-    auto yold = std::make_shared<ConstantFunction>(y);
-    auto ynew = std::make_shared<IdentityFunction>(y.size());
-    auto equ = ynew-yold - dt * rhs;
 
-    double t = 0;
-    for (int i = 0; i < steps; i++)
-      {
-        NewtonSolver (equ, y);
-        yold->set(y);
-        t += dt;
-        if (callback) callback(t, y);
-      }
-  };
-*/
 
+  
 
     // Newmark and generalized alpha:
   // https://miaodi.github.io/finite%20element%20method/newmark-generalized/

@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include <nonlinfunc.hpp>
-#include <ode.hpp>
+#include <timestepper.hpp>
 
 #include <vector.hpp>
 #include <matrix.hpp>
