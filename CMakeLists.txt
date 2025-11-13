@@ -16,12 +16,3 @@ target_link_libraries (test_ode PUBLIC nanoblas)
 add_executable (demo_autodiff demos/demo_autodiff.cpp)
 target_link_libraries (demo_autodiff PUBLIC nanoblas)
 
-
-add_executable (test_newmark demos/test_newmark.cpp)
-target_link_libraries (test_newmark PUBLIC nanoblas)
-
-add_executable (test_alpha demos/test_alpha.cpp)
-target_link_libraries (test_alpha PUBLIC nanoblas)
-
-
-add_subdirectory (mass_spring)
