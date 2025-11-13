@@ -44,7 +44,8 @@ namespace ASC_ode
   {
     Vector<> m_val;
   public:
-    ConstantFunction (VectorView<double> val) : m_val(val) { }
+    ConstantFunction(size_t n) : m_val(n) { }
+    ConstantFunction(VectorView<double> val) : m_val(val) { }
     void set(VectorView<double> val) { m_val = val; }
     VectorView<double> get() const { return m_val; }
     size_t dimX() const override { return m_val.size(); }
@@ -102,14 +103,22 @@ namespace ASC_ode
     return std::make_shared<SumFunction>(fa, fb, 1, 1);
   }
 
-  
+  class Parameter 
+  {
+    double m_value;
+  public:
+    Parameter(double value) : m_value(value) {}
+    double get() const { return m_value; }
+    void set(double value) { m_value = value; }
+  };
+
   class ScaleFunction : public NonlinearFunction
   {
     std::shared_ptr<NonlinearFunction> m_fa;
-    double m_fac;
+    std::shared_ptr<Parameter> m_fac;
   public:
     ScaleFunction (std::shared_ptr<NonlinearFunction> fa,
-                   double fac)
+                   std::shared_ptr<Parameter> fac)
       : m_fa(fa), m_fac(fac) { }
 
     size_t dimX() const override { return m_fa->dimX(); }
@@ -117,20 +126,26 @@ namespace ASC_ode
     void evaluate (VectorView<double> x, VectorView<double> f) const override
     {
       m_fa->evaluate(x, f);
-      f *= m_fac;
+      f *= m_fac->get();
+   }
 
-    }
     void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
     {
       m_fa->evaluateDeriv(x, df);
-      df *= m_fac;
+      df *= m_fac->get();
     }
   };
 
+  inline auto operator* (std::shared_ptr<Parameter> parama, 
+                         std::shared_ptr<NonlinearFunction> f)
+  {
+    return std::make_shared<ScaleFunction>(f, parama);
+  }
+
   inline auto operator* (double a, std::shared_ptr<NonlinearFunction> f)
   {
-    return std::make_shared<ScaleFunction>(f, a);
-  }
+    return std::make_shared<Parameter>(a) * f;
+  } 
 
 
 

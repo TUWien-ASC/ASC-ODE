@@ -33,6 +33,13 @@ int main()
   Vector<> y = { 1, 0 };  // initializer list
   auto rhs = std::make_shared<MassSpring>();
   
-  solveODE_IE(tend, steps, y, rhs,
-              [](double t, VectorView<double> y) { std::cout << t << "  " << y(0) << " " << y(1) << std::endl; });
+  // ExplicitEuler stepper(rhs);
+  ImplicitEuler stepper(rhs);
+
+  double tau = tend/steps;
+  for (int i = 0; i < steps; i++)
+  {
+     stepper.DoStep(tau, y);
+     std::cout << (i+1) * tau << "  " << y(0) << " " << y(1) << std::endl;
+  }
 }
