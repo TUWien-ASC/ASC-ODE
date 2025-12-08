@@ -1,0 +1,9 @@
+build
+_build
+.vscode
+
+# from python package
+_skbuild
+ASCsoft.egg-info
+nanoblas/__pycache__
+nanoblas.egg-info

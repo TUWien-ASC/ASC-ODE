@@ -1,0 +1,91 @@
+// demos/demo_autodiff.cpp
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cmath>
+#include "src/autodiff.hpp"
+
+using AD = AutoDiff<1,double>; // single-variable AD for Legendre
+
+// compute Legendre polynomials P0..Pn at x (templated on T)
+template <typename T>
+void LegendrePolynomials(int n, T x, std::vector<T>& P) {
+    if (n < 0) { P.clear(); return; }
+    P.resize(n+1);
+    P[0] = T(1);
+    if (n == 0) return;
+    P[1] = x;
+    for (int k=2;k<=n;++k) {
+        P[k] = ((T(2*k-1)*x*P[k-1]) - T(k-1)*P[k-2]) / T(k);
+    }
+}
+
+// write Legendre and derivative using AD to CSV
+int main_legendre() {
+    const int nmax = 5;
+    std::ofstream f("legendre.csv");
+    f << "x";
+    for(int k=0;k<=nmax;++k) f << ",P" << k << ",dP" << k;
+    f << "\n";
+
+    // sample points in [-1,1]
+    const int samples = 201;
+    for (int i=0;i<samples;++i) {
+        double x = -1.0 + 2.0 * double(i)/(samples-1);
+        // AD variable: index 0
+        AD x_ad = AD::template variable<0>(x);
+        std::vector<AD> Pad;
+        LegendrePolynomials<AD>(nmax, x_ad, Pad);
+
+        f << x;
+        for(int k=0;k<=nmax;++k) {
+            double Pv = Pad[k].value();
+            double dPv = Pad[k].deriv()[0];
+            f << "," << Pv << "," << dPv;
+        }
+        f << "\n";
+    }
+    f.close();
+    std::cout << "Wrote legendre.csv (P0..P5 and derivatives)\n";
+    return 0;
+}
+
+// ---------- Pendulum AD test (chapter 18.5) ----------
+int main_pendulum() {
+    using AD2 = AutoDiff<2,double>;
+    const double g = 9.81;
+    const double L = 1.0;
+
+    // pick a sample point for (alpha, alpha_dot)
+    double alpha = 0.5; // rad
+    double alpha_dot = 0.0;
+
+    AD2 x0 = AD2::template variable<0>(alpha);
+    AD2 x1 = AD2::template variable<1>(alpha_dot);
+
+    // evaluate f using templated T_evaluate-like code
+    AD2 f0 = x1;
+    AD2 f1 = - (g/L) * sin(x0);
+
+    std::cout << "Pendulum AD evaluation at alpha=" << alpha << ", alpha_dot=" << alpha_dot << "\n";
+    std::cout << "f0 (val, derivs): " << f0 << "\n";
+    std::cout << "f1 (val, derivs): " << f1 << "\n";
+
+    // combine into Jacobian 2x2 printed
+    double J00 = f0.deriv()[0];
+    double J01 = f0.deriv()[1];
+    double J10 = f1.deriv()[0];
+    double J11 = f1.deriv()[1];
+
+    std::cout << "Jacobian (df_i / dx_j):\n";
+    std::cout << "[" << J00 << " , " << J01 << "]\n";
+    std::cout << "[" << J10 << " , " << J11 << "]\n";
+    return 0;
+}
+
+int main(int argc, char** argv) {
+    (void)argc; (void)argv;
+    main_legendre();
+    main_pendulum();
+    return 0;
+}

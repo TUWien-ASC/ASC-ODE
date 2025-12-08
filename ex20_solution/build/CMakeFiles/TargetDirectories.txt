@@ -1,0 +1,3 @@
+/home/jovyan/ASC-ODE-clean/ex20_solution/build/CMakeFiles/demo_mass_spring.dir
+/home/jovyan/ASC-ODE-clean/ex20_solution/build/CMakeFiles/edit_cache.dir
+/home/jovyan/ASC-ODE-clean/ex20_solution/build/CMakeFiles/rebuild_cache.dir
