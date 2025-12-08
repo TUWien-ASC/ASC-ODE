@@ -1,0 +1,170 @@
+#ifndef FILE_MATEXPR
+#define FILE_MATEXPR
+
+#include <cstddef>
+#include <iostream>
+
+#include "vecexpr.hpp"
+
+namespace nanoblas
+{
+
+  /*
+    Expression templates for matrix expressions
+    and matrix-vector expressions
+  */
+  
+  
+  // base class for all matrix expressions
+  
+  template <typename T>
+  class MatExpr
+  {
+  public:
+    auto derived() const { return static_cast<const T&> (*this); }
+    size_t rows() const { return derived().rows(); }
+    size_t cols() const { return derived().cols(); }
+    auto shape() const { return derived().shape(); }
+    auto operator() (size_t i, size_t j) const { return derived()(i,j); }
+  };
+  
+  // ************************* output operator *******************
+  
+  template <typename TM>
+  std::ostream & operator<< (std::ostream & os, const MatExpr<TM> & m)
+  {
+    for (size_t i = 0; i < m.rows(); i++)
+      {
+        for (size_t j = 0; j < m.cols(); j++)
+          os << m(i,j) << " ";
+        os << std::endl;
+      }
+    return os;
+  }
+
+
+  // ************************* SumMatExpr *******************  
+
+  template <typename TA, typename TB>
+  class SumMatExpr : public MatExpr<SumMatExpr<TA,TB>>
+  {
+    TA a;
+    TB b;
+  public:
+    SumMatExpr (TA _a, TB _b) : a(_a), b(_b) { }
+    auto operator() (size_t i) const { return a(i)+b(i); }
+    size_t rows() const { return a.rows(); }
+    size_t cols() const { return a.cols(); }  
+    auto shape() const { return a.shape(); }    
+  };
+  
+  template <typename TA, typename TB>
+  auto operator+ (const MatExpr<TA>& a, const MatExpr<TB>& b)
+  {
+    assert(a.rows()==b.rows() && a.cols()==b.cols());
+    return SumMatExpr(a.derived(), b.derived());
+  }
+
+
+  // ************************ ScaleMatExpr *********************  
+  
+  
+  template <typename TSCAL, typename TM>
+  class ScaleMatExpr : public MatExpr<ScaleMatExpr<TSCAL,TM>>
+  {
+    TSCAL m_scal;
+    TM m_mat;
+  public:
+    ScaleMatExpr (TSCAL scal, TM mat) : m_scal(scal), m_mat(mat) { }
+    auto operator() (size_t i, size_t j) const { return m_scal*m_mat(i,j); }
+    size_t rows() const { return m_mat.rows(); }
+    size_t cols() const { return m_mat.cols(); }  
+  };
+
+
+  /*
+  // C++17 needs the enable_if workaround instead of the 'requires' concept syntax
+  template <typename TSCAL, typename T,
+            typename std::enable_if<isScalar<TSCAL>(),int>::type = 0>
+  */
+  template <typename TSCAL, typename T> requires (isScalar<TSCAL>())
+  auto operator* (TSCAL scal, const MatExpr<T>& m)
+  {
+    return ScaleMatExpr(scal, m.derived());
+  }
+  
+  
+
+  // ************************* MultMatMatExpr *******************
+  
+  template <typename TA, typename TB>
+  class MultMatMatExpr : public MatExpr<MultMatMatExpr<TA,TB>>
+  {
+    TA a;
+    TB b;
+  public:
+    MultMatMatExpr (TA _a, TB _b) : a(_a), b(_b) { }
+    size_t rows() const { return a.rows(); }
+    size_t cols() const { return b.cols(); }
+    auto shape() const { return std::array<size_t,2>{a.shape()[0], b.shape()[1]}; }
+    
+    // auto operator() (size_t i, size_t j) const { return dot(a.row(i), b.col(j)); }
+    auto operator() (size_t i, size_t j) const { 
+      using elemtypeA = std::invoke_result<TA,size_t,size_t>::type;
+      using elemtypeB = std::invoke_result<TB,size_t,size_t>::type;
+      using TSCAL = decltype(std::declval<elemtypeA>()*std::declval<elemtypeB>());
+      
+      TSCAL sum = 0;
+      for (size_t k = 0; k < a.cols(); k++)
+        sum += a(i,k) * b(k,j); 
+      return sum;
+    }
+
+    
+  };
+  
+  template <typename TA, typename TB>
+  auto operator* (const MatExpr<TA>& a, const MatExpr<TB>& b)
+  {
+    assert(a.cols()==b.rows());
+    return MultMatMatExpr<TA,TB>(a.derived(), b.derived());
+  }
+  
+
+
+  // ************************* MultMatVecExpr *******************
+  
+  template <typename TA, typename TB>
+  class MultMatVecExpr : public VecExpr<MultMatVecExpr<TA,TB>>
+  {
+    TA a;
+    TB b;
+  public:
+    MultMatVecExpr (TA _a, TB _b) : a(_a), b(_b) { }
+    size_t size() const { return a.rows(); }
+    
+    // auto operator() (size_t i) const { return dot(a.row(i), b); }
+    auto operator() (size_t i) const { 
+      using elemtypeA = std::invoke_result<TA,size_t,size_t>::type;
+      using elemtypeB = std::invoke_result<TB,size_t>::type;
+      using TSCAL = decltype(std::declval<elemtypeA>()*std::declval<elemtypeB>());
+      
+      TSCAL sum = 0;
+      for (size_t k = 0; k < a.cols(); k++)
+        sum += a(i,k) * b(k); 
+      return sum;
+    }
+    
+  };
+
+  template <typename TA, typename TB>
+  auto operator* (const MatExpr<TA>& a, const VecExpr<TB>& b)
+  {
+    assert(a.cols()==b.size());    
+    return MultMatVecExpr<TA,TB>(a.derived(), b.derived());
+  }
+ 
+
+} // namespace nanoblas
+
+#endif
