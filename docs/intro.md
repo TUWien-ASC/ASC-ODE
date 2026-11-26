@@ -7,10 +7,12 @@ ASC-ODE provides various time-steppers which may be used for odes with right han
 given by a function object.
 
 A small demo for solving a mass-spring model as first order ODE
-\begin{eqnarray*}
-y_0^\prime & = & y_1 \\
-y_1^\prime & = & -\frac{k}{m} y_0
-\end{eqnarray*}
+$$
+\begin{aligned}
+y_0^\prime & = y_1 \\
+y_1^\prime & = -\frac{k}{m} y_0
+\end{aligned}
+$$
 is here:
 
 ```cpp
@@ -19,7 +21,7 @@ int steps = 100;
 double tau = tend/steps;
 
 Vector<> y = { 1, 0 };  // initial conditions
-shared_ptr<NonlinearFunction> rhs = std::make_shared<MassSpring>(mass, stiffness);
+std::shared_ptr<NonlinearFunction> rhs = std::make_shared<MassSpring>(mass, stiffness);
   
 ExplicitEuler stepper(rhs);
 
@@ -34,7 +36,7 @@ for (int i = 0; i < steps; i++)
 The result of this simulation in phase space is shown here:
 
 ```{image} pictures/massspring_phase.png
-:width: 40%
+:width: 50%
 :align: center
 ```
 
